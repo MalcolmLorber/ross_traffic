@@ -6,33 +6,41 @@
 #define MEAN_DEPARTURE 30.0
 #define MEAN_LAND 10.0
 
-typedef enum airport_event_t airport_event_t;
-typedef struct airport_state airport_state;
-typedef struct airport_message airport_message;
+typedef enum traffic_event_t traffic_event_t;
+typedef struct traffic_state traffic_state;
+typedef struct traffic_message traffic_message;
 
-enum airport_event_t
+enum traffic_event_t
 {
 	ARRIVAL = 1,
-	DEPARTURE,
-	LAND
+	DEPARTURE
 };
 
-struct airport_state
+struct traffic_state
 {
-	int		landings;
-	int		planes_in_the_sky;
-	int		planes_on_the_ground;
+	int	num_cars_finished_here;
+	int	num_cars_arrived_here;
+	int	average_waiting_time;
 
-	tw_stime	waiting_time;
-	tw_stime	furthest_flight_landing;
+	int num_cars_in_north;
+	int num_cars_out_north;
+	int num_cars_in_south;
+	int num_cars_out_south;
+	int num_cars_in_east;
+	int num_cars_out_east;
+	int num_cars_in_west;
+	int num_cars_out_west;
 };
+
+typedef struct {
+	int x_to_go;
+	int y_to_go;
+} car;
 
 struct airport_message
 {
-	airport_event_t	 type;
-
-	tw_stime	 waiting_time;
-	tw_stime	 saved_furthest_flight_landing;
+	traffic_event_t	 type;
+	car c;
 };
 
 static tw_stime lookahead = 0.00000001;

@@ -1,35 +1,17 @@
-#include "airport.h"
+#include "traffic.h"
 
-/*
-  airport.c
-  Airport simulator
-  20011003
-  Justin M. LaPre
-
-  2008/2/16
-  Modified for ROSS 4.0
-  David Bauer
-*/
-
-tw_peid
-mapping(tw_lpid gid)
-{
+tw_peid mapping(tw_lpid gid) {
 	return (tw_peid) gid / g_tw_nlp;
 }
 
-void
-init(airport_state * s, tw_lp * lp)
-{
+void init(traffic_state * s, tw_lp * lp) {
   int i;
   tw_event *e;
   airport_message *m;
 
-  s->landings = 0;
-  s->planes_in_the_sky = 0;
-  s->planes_on_the_ground = planes_per_airport;
-  s->waiting_time = 0.0;
-  s->furthest_flight_landing = 0.0;
+  //init state struct variables
 
+  //seed initial events
   for(i = 0; i < planes_per_airport; i++)
     {
       e = tw_event_new(lp->gid, tw_rand_exponential(lp->rng, MEAN_DEPARTURE), lp);
@@ -39,9 +21,7 @@ init(airport_state * s, tw_lp * lp)
     }
 }
 
-void
-event_handler(airport_state * s, tw_bf * bf, airport_message * msg, tw_lp * lp)
-{
+void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp * lp) {
   int rand_result;
   tw_lpid dst_lp;
   tw_stime ts;
@@ -130,9 +110,7 @@ event_handler(airport_state * s, tw_bf * bf, airport_message * msg, tw_lp * lp)
     }
 }
 
-void
-rc_event_handler(airport_state * s, tw_bf * bf, airport_message * msg, tw_lp * lp)
-{
+void rc_event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp * lp) {
   switch(msg->type)
   {
     case ARRIVAL:
@@ -150,9 +128,7 @@ rc_event_handler(airport_state * s, tw_bf * bf, airport_message * msg, tw_lp * l
   }
 }
 
-void
-final(airport_state * s, tw_lp * lp)
-{
+void final(traffic_state * s, tw_lp * lp) {
 	wait_time_avg += ((s->waiting_time / (double) s->landings) / nlp_per_pe);
 }
 
@@ -172,7 +148,7 @@ tw_lptype airport_lps[] =
 
 const tw_optdef app_opt [] =
 {
-	TWOPT_GROUP("Airport Model"),
+	TWOPT_GROUP("Traffic Model"),
     TWOPT_STIME("lookahead", lookahead, "lookahead for events"),
 	//TWOPT_UINT("nairports", nlp_per_pe, "initial # of airports(LPs)"),
 	TWOPT_UINT("nplanes", planes_per_airport, "initial # of planes per airport(events)"),
@@ -181,9 +157,7 @@ const tw_optdef app_opt [] =
 	TWOPT_END()
 };
 
-int
-main(int argc, char **argv, char **env)
-{
+int main(int argc, char **argv, char **env) {
 	int i;
 
 	tw_opt_add(app_opt);
@@ -205,13 +179,13 @@ main(int argc, char **argv, char **env)
 	{
 		printf("\nAirport Model Statistics:\n");
 		printf("\t%-50s %11.4lf\n", "Average Waiting Time", wait_time_avg);
-		printf("\t%-50s %11lld\n", "Number of airports", 
+		printf("\t%-50s %11lld\n", "Number of airports",
 			nlp_per_pe * g_tw_npe * tw_nnodes());
-		printf("\t%-50s %11lld\n", "Number of planes", 
+		printf("\t%-50s %11lld\n", "Number of planes",
 			planes_per_airport * nlp_per_pe * g_tw_npe * tw_nnodes());
 	}
 
 	tw_end();
-	
+
 	return 0;
 }
