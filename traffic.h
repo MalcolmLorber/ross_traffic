@@ -7,13 +7,26 @@
 #define MEAN_LAND 10.0
 
 typedef enum traffic_event_t traffic_event_t;
+typedef enum traffic_direction_t traffoc_direction_t;
 typedef struct traffic_state traffic_state;
 typedef struct traffic_message traffic_message;
 
 enum traffic_event_t {
-	ARRIVAL = 1,
-	DEPARTURE
+	ARRIVAL,
+	DEPARTURE,
+	PATHFINDING
 };
+
+enum traffic_direction_t {
+	IN_NORTH = 0,
+	OUT_NORTH,
+	IN_SOUTH,
+	OUT_SOUTH,
+	IN_EAST,
+	OUT_EAST,
+	IN_WEST,
+	OUT_WEST
+}
 
 struct traffic_state {
 	int num_cars_finished_here;
@@ -33,18 +46,20 @@ struct traffic_state {
 typedef struct {
 	int x_to_go;
 	int y_to_go;
+	traffic_direction_t direction;
 } car;
 
-struct airport_message {
+struct traffic_message {
 	traffic_event_t type;
-	car c;
+	car car;
 };
 
+//static int grid_size = 128;
 static tw_stime lookahead = 0.00000001;
 static tw_lpid nlp_per_pe = 1024;
 static tw_stime mean_flight_time = 1;
 static int opt_mem = 1000;
-static int planes_per_airport = 1;
+static int cars_per_insection = 1;
 
 static tw_stime wait_time_avg = 0.0;
 
