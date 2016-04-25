@@ -9,9 +9,13 @@ void init(traffic_state * s, tw_lp * lp)
 {
 	int i;
 	tw_event *e;
-	airport_message *m;
+	traffic_message *m;
 
 	//init state struct variables
+	s->num_cars_finished_here = 0;
+	s->num_cars_arrived_here = 0;
+	s->average_waiting_time = 0;
+	s->num_cars_in_north = 0;
 
 	//seed initial events
 	for (i = 0; i < planes_per_airport; i++) {
@@ -150,11 +154,11 @@ tw_lptype airport_lps[] =
 const tw_optdef app_opt [] =
 {
 	TWOPT_GROUP("Traffic Model"),
-	TWOPT_STIME("lookahead",     lookahead,		  "lookahead for events"),
+	TWOPT_STIME("lookahead",     lookahead,			 "lookahead for events"),
 	//TWOPT_UINT("nairports", nlp_per_pe, "initial # of airports(LPs)"),
-	TWOPT_UINT("nplanes",	     planes_per_airport,  "initial # of planes per airport(events)"),
-	TWOPT_STIME("mean",	     mean_flight_time,	  "mean flight time for planes"),
-	TWOPT_UINT("memory",	     opt_mem,		  "optimistic memory"),
+	TWOPT_UINT("nplanes",	     planes_per_airport,	 "initial # of planes per airport(events)"),
+	TWOPT_STIME("mean",	     mean_flight_time,		 "mean flight time for planes"),
+	TWOPT_UINT("memory",	     opt_mem,			 "optimistic memory"),
 	TWOPT_END()
 };
 
