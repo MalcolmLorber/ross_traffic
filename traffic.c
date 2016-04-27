@@ -37,16 +37,16 @@ void init(traffic_state * s, tw_lp * lp)
 }
 
 traffic_direction_t change_dir(traffic_direction_t cur_dir) {
-	switch(cur_dir){
-        case SOUTH:
-			return NORTH;
-		case WEST:
-            return EAST;
-        case NORTH:
-            return SOUTH;
-        case EAST:
-            return OUT_WEST;
-	}
+    switch(cur_dir){
+    case SOUTH:
+        return NORTH;
+    case WEST:
+        return EAST;
+    case NORTH:
+        return SOUTH;
+    case EAST:
+        return OUT_WEST;
+    }
 }
 
 traffic_direction_t find_path(traffic_message * msg) {
@@ -63,7 +63,7 @@ traffic_direction_t find_path(traffic_message * msg) {
         } else if(msg->car.y_to_go > 0){
             msg->car.y_to_go--;
             return SOUTH
-        } else {
+                } else {
             return NULL;
         }
     }
@@ -71,26 +71,26 @@ traffic_direction_t find_path(traffic_message * msg) {
 
 tw_lpid resolve_neighbor(traffic_direction_t dir, tw_lp * lp){
     switch(dir) {
-        case NORTH:
-            if (lp->gid < grid_size)
-                return lp->gid + (grid_size - 1) * grid_size;
-            else
-                return lp->gid - grid_size - 1;
-        case EAST:
-            if ((lp->gid % grid_size) == grid_size - 1)
-                return lp->gid - grid_size - 1;
-            else
-                return lp->gid + 1;
-        case SOUTH:
-            if (lp->gid >= (grid_size - 1) * grid_size)
-                return lp->gid - (grid_size - 1) * grid_size;
-            else
-                return lp->gid + (grid_size - 1);
-        case WEST:
-            if ((lp->gid % grid_size) == 0)
-                return lp->gid + (grid_size - 1);
-            else
-                return lp->gid - 1;
+    case NORTH:
+        if (lp->gid < grid_size)
+            return lp->gid + (grid_size - 1) * grid_size;
+        else
+            return lp->gid - grid_size - 1;
+    case EAST:
+        if ((lp->gid % grid_size) == grid_size - 1)
+            return lp->gid - grid_size - 1;
+        else
+            return lp->gid + 1;
+    case SOUTH:
+        if (lp->gid >= (grid_size - 1) * grid_size)
+            return lp->gid - (grid_size - 1) * grid_size;
+        else
+            return lp->gid + (grid_size - 1);
+    case WEST:
+        if ((lp->gid % grid_size) == 0)
+            return lp->gid + (grid_size - 1);
+        else
+            return lp->gid - 1;
     }
 }
 
@@ -153,50 +153,50 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
         s->num_cars_arrived_here++;
         int lane_full = 0;
         switch(msg->car.direction){
-            case NORTH:
-                if(s->num_cars_in_south >= lane_capacity){
-                    lane_full = 1;
+        case NORTH:
+            if(s->num_cars_in_south >= lane_capacity){
+                lane_full = 1;
+            } else {
+                if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
+                    s->num_cars_finished_here++;
                 } else {
-                    if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
-                        s->num_cars_finished_here++;
-                    } else {
-                        s->num_cars_in_south++;
-                    }
+                    s->num_cars_in_south++;
                 }
-                break;
-            case EAST:
-                if(s->num_cars_in_west >= lane_capacity){
-                    lane_full = 1;
+            }
+            break;
+        case EAST:
+            if(s->num_cars_in_west >= lane_capacity){
+                lane_full = 1;
+            } else {
+                if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
+                    s->num_cars_finished_here++;
                 } else {
-                    if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
-                        s->num_cars_finished_here++;
-                    } else {
-                        s->num_cars_in_west++;
-                    }
+                    s->num_cars_in_west++;
                 }
-                break;
-            case SOUTH:
-                if(s->num_cars_in_north >= lane_capacity){
-                    lane_full = 1;
+            }
+            break;
+        case SOUTH:
+            if(s->num_cars_in_north >= lane_capacity){
+                lane_full = 1;
+            } else {
+                if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
+                    s->num_cars_finished_here++;
                 } else {
-                    if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
-                        s->num_cars_finished_here++;
-                    } else {
-                        s->num_cars_in_north++;
-                    }
+                    s->num_cars_in_north++;
                 }
-                break;
-            case WEST:
-                if(s->num_cars_in_east >= lane_capacity){
-                    lane_full = 1;
+            }
+            break;
+        case WEST:
+            if(s->num_cars_in_east >= lane_capacity){
+                lane_full = 1;
+            } else {
+                if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
+                    s->num_cars_finished_here++;
                 } else {
-                    if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
-                        s->num_cars_finished_here++;
-                    } else {
-                        s->num_cars_in_east++;
-                    }
+                    s->num_cars_in_east++;
                 }
-                break;
+            }
+            break;
         }
         if(lane_full == 1){
             traffic_direction_t new_dir = change_dir(msg->car.direction);
