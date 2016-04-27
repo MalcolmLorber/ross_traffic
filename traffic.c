@@ -211,7 +211,7 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
         } else {
             if(msg->car.x_to_go != 0 || msg->car.y_to_go != 0){
                 ts = update_next_available_departure(s, msg->car.direction, lp);
-                e = tw_event_new(lp, ts, lp);
+                e = tw_event_new(lp->gid, ts, lp);
                 m = tw_event_data(e);
                 m->type = DEPARTURE;
                 m->car = msg->car;
@@ -219,7 +219,7 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
             }
         }
         break;
-    case DEPARTURE:
+    case DEPARTURE: ;
         traffic_direction_t dir = find_path(msg);
         tw_lpid dest_lp = resolve_neighbor(dir, lp);
         ts = calculate_traversal_time();
@@ -333,7 +333,7 @@ int main(int argc, char **argv, char **env)
 
     //Ask the professor whats up
     nlp_per_pe /= (tw_nnodes() * g_tw_npe);
-    g_tw_events_per_pe = (cars_per_insection * nlp_per_pe / g_tw_npe) + opt_mem;
+    g_tw_events_per_pe = (initial_cars_per_intersection * nlp_per_pe / g_tw_npe) + opt_mem;
 
     g_tw_lookahead = lookahead;
 
