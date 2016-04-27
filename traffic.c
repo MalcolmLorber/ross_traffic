@@ -45,9 +45,7 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
 	traffic_message *m;
 
 	switch (msg->type) {
-
 	case ARRIVAL:
-	{
 		// Schedule a landing in the future
 		msg->saved_furthest_flight_landing = s->furthest_flight_landing;
 		s->furthest_flight_landing = ROSS_MAX(s->furthest_flight_landing, tw_now(lp));
@@ -59,10 +57,7 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
 		s->furthest_flight_landing += ts;
 		tw_event_send(e);
 		break;
-	}
-
 	case DEPARTURE:
-	{
 		s->planes_on_the_ground--;
 		ts = tw_rand_exponential(lp->rng, mean_flight_time);
 		rand_result = tw_rand_integer(lp->rng, 0, 3);
@@ -101,26 +96,11 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
 				dst_lp = lp->gid - 1;
 			break;
 		}
-
 		e = tw_event_new(dst_lp, ts, lp);
 		m = tw_event_data(e);
 		m->type = ARRIVAL;
 		tw_event_send(e);
 		break;
-	}
-
-	case LAND:
-	{
-		s->landings++;
-		s->waiting_time += msg->waiting_time;
-
-		e = tw_event_new(lp->gid, tw_rand_exponential(lp->rng, MEAN_DEPARTURE), lp);
-		m = tw_event_data(e);
-		m->type = DEPARTURE;
-		tw_event_send(e);
-		break;
-	}
-
 	}
 }
 
@@ -164,14 +144,20 @@ tw_lptype traffic_lps[] =
 const tw_optdef app_opt [] =
 {
 	TWOPT_GROUP("Traffic Model"),
-	TWOPT_STIME("lookahead",     lookahead,			 "lookahead for events"),
 	TWOPT_UINT("grid_size",	     grid_size,	 "size of traffic grid"),
 	TWOPT_UINT("memory",	     opt_mem,			 "optimistic memory"),
+	TWOPT_UINT("initial_cars_per_intersection",	     initial_cars_per_intersection,	 "the number of initially seeded cars per intersection"),
+	TWOPT_UINT("lane_capacity",	     lane_capacity,	 "the number of cars that can be in any given lane for an intersection"),
+	TWOPT_UINT("memory",	     opt_mem,			 "optimistic memory"),
+	TWOPT_STIME("lookahead",     lookahead,			 "lookahead for events"),
+	TWOPT_STIME("traffic_light_duration",     traffic_light_duration,			 "Time for a given traffic light cycle"),
+	TWOPT_STIME("time_car_takes",     time_car_takes,			 "the time the car takes to go through the light"),
 	TWOPT_END()
 };
 
 int main(int argc, char **argv, char **env)
 {
+	//opt-mem should be around 16k
 	int i;
 
 	tw_opt_add(app_opt);
@@ -192,7 +178,7 @@ int main(int argc, char **argv, char **env)
 	tw_run();
 
 	if (tw_ismaster()) {
-		printf("\Traffic Model Statistics:\n");
+		printf("Traffic Model Statistics:\n");
 		//Print out stats aggregation
 	}
 
