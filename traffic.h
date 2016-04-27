@@ -32,6 +32,11 @@ struct traffic_state {
     int num_cars_arrived_here;
     int waiting_time;
 
+    tw_stime cur_ns_cycle_start;
+    tw_stime last_ns_time;
+    tw_stime cur_we_cycle_start;
+    tw_stime last_we_time;
+
     int num_cars_in_north;
     //int num_cars_out_north;
     int num_cars_in_south;
