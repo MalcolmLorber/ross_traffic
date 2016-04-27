@@ -14,7 +14,7 @@ void init(traffic_state * s, tw_lp * lp)
 	//init state struct variables
 	s->num_cars_finished_here = 0;
 	s->num_cars_arrived_here = 0;
-	s->average_waiting_time = 0;
+	s->waiting_time = 0;
 	s->num_cars_in_north = 0;
 	s->num_cars_out_north = 0;
 	s->num_cars_in_south = 0;
@@ -28,10 +28,10 @@ void init(traffic_state * s, tw_lp * lp)
 	for (i = 0; i < cars_per_insection; i++) {
 		e = tw_event_new(lp->gid, tw_rand_exponential(lp->rng, MEAN_DEPARTURE), lp);
 		m = tw_event_data(e);
-		m->type = ARRIAL;
-		m->car->x_to_go = tw_rand_exponential(lp->rng, grid_size);
-		m->car->y_to_go = tw_rand_exponential(lp->rng, grid_size);
-		m->car->direction = rand() % 8;
+		m->type = ARRIVAL;
+		m->car.x_to_go = tw_rand_exponential(lp->rng, grid_size);
+		m->car.y_to_go = tw_rand_exponential(lp->rng, grid_size);
+		m->car.direction = rand() % 8;
 		tw_event_send(e);
 	}
 }
@@ -48,13 +48,15 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
 
 	case ARRIVAL:
 	{
-		// Schedule a landing in the future
-		msg->saved_furthest_flight_landing = s->furthest_flight_landing;
-		s->furthest_flight_landing = ROSS_MAX(s->furthest_flight_landing, tw_now(lp));
+                // Schedule a landing in the future
+		//msg->saved_furthest_flight_landing = s->furthest_flight_landing;
+		//s->furthest_flight_landing = ROSS_MAX(s->furthest_flight_landing, tw_now(lp));
 		ts = tw_rand_exponential(lp->rng, MEAN_LAND);
-		e = tw_event_new(lp->gid, ts + s->furthest_flight_landing - tw_now(lp), lp);
+		///////
+                e = tw_event_new(lp->gid, ts + s->furthest_flight_landing - tw_now(lp), lp);
 		m = tw_event_data(e);
 		m->type = LAND;
+                ///////
 		m->waiting_time = s->furthest_flight_landing - tw_now(lp);
 		s->furthest_flight_landing += ts;
 		tw_event_send(e);
@@ -144,7 +146,7 @@ void rc_event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_l
 
 void final(traffic_state * s, tw_lp * lp)
 {
-	wait_time_avg += ((s->waiting_time / (double)s->landings) / nlp_per_pe);
+	wait_time_avg += ((s->waiting_time / (double)s->num_cars_arrived_here) / nlp_per_pe);
 }
 
 tw_lptype traffic_lps[] =
@@ -192,7 +194,7 @@ int main(int argc, char **argv, char **env)
 	tw_run();
 
 	if (tw_ismaster()) {
-		printf("\Traffic Model Statistics:\n");
+		printf("Traffic Model Statistics:\n");
 		//Print out stats aggregation
 	}
 
