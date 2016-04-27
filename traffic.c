@@ -75,10 +75,10 @@ tw_lpid resolve_neighbor(traffic_direction_t dir, tw_lp * lp){
         if (lp->gid < grid_size)
             return lp->gid + (grid_size - 1) * grid_size;
         else
-            return lp->gid - grid_size - 1;
+            return lp->gid - (grid_size - 1);
     case EAST:
-        if ((lp->gid % grid_size) == grid_size - 1)
-            return lp->gid - grid_size - 1;
+        if ((lp->gid % grid_size) == (grid_size - 1))
+            return lp->gid - (grid_size - 1);
         else
             return lp->gid + 1;
     case SOUTH:
@@ -221,6 +221,14 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
         break;
     case DEPARTURE:
         traffic_direction_t dir = find_path(msg);
+        tw_lpid dest_lp = resolve_neighbor(dir, lp);
+        ts = calculate_traversal_time();
+        e = tw_event_new(dest_lp, ts, lp);
+        m = tw_event_data(e);
+        m->type = ARRIVAL;
+        m->car = msg->car;
+        m->car.direction = dir;
+        tw_event_send(e);
     }
 }
 
