@@ -29,8 +29,8 @@ void init(traffic_state * s, tw_lp * lp)
         e = tw_event_new(lp->gid, tw_rand_exponential(lp->rng, MEAN_DEPARTURE), lp);
         m = tw_event_data(e);
         m->type = ARRIVAL;
-        m->car.x_to_go = tw_rand_exponential(lp->rng, grid_size);
-        m->car.y_to_go = tw_rand_exponential(lp->rng, grid_size);
+        m->car.x_to_go = tw_rand_exponential(lp->rng, grid_size*2) - grid_size;
+        m->car.y_to_go = tw_rand_exponential(lp->rng, grid_size*2) - grid_size;
         m->car.direction = rand() % 4;
         tw_event_send(e);
     }
