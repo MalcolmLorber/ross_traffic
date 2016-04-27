@@ -31,10 +31,74 @@ void init(traffic_state * s, tw_lp * lp)
         m->type = ARRIVAL;
         m->car.x_to_go = tw_rand_exponential(lp->rng, grid_size);
         m->car.y_to_go = tw_rand_exponential(lp->rng, grid_size);
-        m->car.direction = (rand() % 4) * 2;
+        m->car.direction = rand() % 4;
         tw_event_send(e);
     }
 }
+
+
+traffic_direction_t change_dir(traffic_direction_t cur_dir) {
+	switch(cur_dir){
+        case SOUTH:
+			return NORTH;
+		case WEST:
+            return EAST;
+        case NORTH:
+            return SOUTH;
+        case EAST:
+            return OUT_WEST;
+	}
+}
+
+traffic_direction_t find_path(traffic_message * msg) {
+    if(msg->car.x_to_go < 0){
+        msg->car.x_to_go++;
+        return WEST;
+    } else if (msg->car.x_to_go > 0) {
+        msg->car.x_to_go--;
+        return EAST;
+    } else {
+        if(msg->car.y_to_go < 0) {
+            msg->car.y_to_go++;
+            return NORTH;
+        } else if(msg->car.y_to_go > 0){
+            msg->car.y_to_go--;
+            return SOUTH
+        } else {
+            return NULL;
+        }
+    }
+}
+
+tw_lpid resolve_neighbor(traffic_direction_t dir, tw_lp * lp){
+    switch(dir) {
+        case NORTH:
+            if (lp->gid < grid_size)
+                return lp->gid + (grid_size - 1) * grid_size;
+            else
+                return lp->gid - grid_size - 1;
+        case EAST:
+            if ((lp->gid % grid_size) == grid_size - 1)
+                return lp->gid - grid_size - 1;
+            else
+                return lp->gid + 1;
+        case SOUTH:
+            if (lp->gid >= (grid_size - 1) * grid_size)
+                return lp->gid - (grid_size - 1) * grid_size;
+            else
+                return lp->gid + (grid_size - 1);
+        case WEST:
+            if ((lp->gid % grid_size) == 0)
+                return lp->gid + (grid_size - 1);
+            else
+                return lp->gid - 1;
+    }
+}
+
+tw_stime calculate_traversal_time(){
+    return lane_capacity * lane_unit_traversal_time;
+}
+
 
 void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp * lp)
 {
@@ -46,63 +110,77 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
 
     switch (msg->type) {
     case ARRIVAL:
-        // Schedule a landing in the future
-        //msg->saved_furthest_flight_landing = s->furthest_flight_landing;
-        //s->furthest_flight_landing = ROSS_MAX(s->furthest_flight_landing, tw_now(lp));
-        ts = tw_rand_exponential(lp->rng, MEAN_LAND);
-        ///////
-        e = tw_event_new(lp->gid, ts + s->furthest_flight_landing - tw_now(lp), lp);
-        m = tw_event_data(e);
-        m->type = LAND;
-        ///////
-        m->waiting_time = s->furthest_flight_landing - tw_now(lp);
-        s->furthest_flight_landing += ts;
-        tw_event_send(e);
+        s->num_cars_arrived_here++;
+        int lane_full = 0;
+        switch(msg->car.direction){
+            case NORTH:
+                if(s->num_cars_in_south >= lane_capacity){
+                    lane_full = 1;
+                } else {
+                    if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
+                        s->num_cars_finished_here++;
+                    } else {
+                        s->num_cars_in_south++;
+                    }
+                }
+                break;
+            case EAST:
+                if(s->num_cars_in_west >= lane_capacity){
+                    lane_full = 1;
+                } else {
+                    if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
+                        s->num_cars_finished_here++;
+                    } else {
+                        s->num_cars_in_west++;
+                    }
+                }
+                break;
+            case SOUTH:
+                if(s->num_cars_in_north >= lane_capacity){
+                    lane_full = 1;
+                } else {
+                    if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
+                        s->num_cars_finished_here++;
+                    } else {
+                        s->num_cars_in_north++;
+                    }
+                }
+                break;
+            case WEST:
+                if(s->num_cars_in_east >= lane_capacity){
+                    lane_full = 1;
+                } else {
+                    if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
+                        s->num_cars_finished_here++;
+                    } else {
+                        s->num_cars_in_east++;
+                    }
+                }
+                break;
+        }
+        if(lane_full == 1){
+            traffic_direction_t new_dir = change_dir(msg->car.direction);
+            tw_lpid dest_lp = resolve_neighbor(new_dir, lp);
+            ts = calculate_traversal_time();
+            e = tw_event_new(dest_lp, ts, lp);
+            m = tw_event_data(e);
+            m->type = ARRIVAL;
+            m->car = msg->car;
+            m->car.direction = new_dir;
+            tw_event_send(e);
+        } else {
+            if(msg->car.x_to_go != 0 || msg->car.y_to_go != 0){
+                ts = update_next_available_departure(s, new_dir, lp);
+                e = tw_event_new(lp, ts, lp);
+                m = tw_event_data(e);
+                m->type = DEPARTURE;
+                m->car = msg->car;
+                tw_event_send(e);
+            }
+        }
         break;
     case DEPARTURE:
-        s->planes_on_the_ground--;
-        ts = tw_rand_exponential(lp->rng, mean_flight_time);
-        rand_result = tw_rand_integer(lp->rng, 0, 3);
-        dst_lp = 0;
-        switch (rand_result) {
-        case 0:
-            // Fly north
-            if (lp->gid < 32)
-                // Wrap around
-                dst_lp = lp->gid + 31 * 32;
-            else
-                dst_lp = lp->gid - 31;
-            break;
-        case 1:
-            // Fly south
-            if (lp->gid >= 31 * 32)
-                // Wrap around
-                dst_lp = lp->gid - 31 * 32;
-            else
-                dst_lp = lp->gid + 31;
-            break;
-        case 2:
-            // Fly east
-            if ((lp->gid % 32) == 31)
-                // Wrap around
-                dst_lp = lp->gid - 31;
-            else
-                dst_lp = lp->gid + 1;
-            break;
-        case 3:
-            // Fly west
-            if ((lp->gid % 32) == 0)
-                // Wrap around
-                dst_lp = lp->gid + 31;
-            else
-                dst_lp = lp->gid - 1;
-            break;
-        }
-        e = tw_event_new(dst_lp, ts, lp);
-        m = tw_event_data(e);
-        m->type = ARRIVAL;
-        tw_event_send(e);
-        break;
+        traffic_direction_t dir = find_path(msg);
     }
 }
 

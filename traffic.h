@@ -4,6 +4,7 @@
 #include <ross.h>
 
 #define MEAN_DEPARTURE 10
+#define MEAN_UTURN 1
 
 typedef enum traffic_event_t traffic_event_t;
 typedef enum traffic_direction_t traffic_direction_t;
@@ -16,14 +17,14 @@ enum traffic_event_t {
 };
 
 enum traffic_direction_t {
-    IN_NORTH = 0,
-    OUT_NORTH,
-    IN_SOUTH,
-    OUT_SOUTH,
-    IN_EAST,
-    OUT_EAST,
-    IN_WEST,
-    OUT_WEST
+    NORTH = 0,
+    //OUT_NORTH,
+    SOUTH,
+    //OUT_SOUTH,
+    EAST,
+    //OUT_EAST,
+    WEST
+    //OUT_WEST
 };
 
 struct traffic_state {
@@ -32,13 +33,13 @@ struct traffic_state {
     int waiting_time;
 
     int num_cars_in_north;
-    int num_cars_out_north;
+    //int num_cars_out_north;
     int num_cars_in_south;
-    int num_cars_out_south;
+    //int num_cars_out_south;
     int num_cars_in_east;
-    int num_cars_out_east;
+    //int num_cars_out_east;
     int num_cars_in_west;
-    int num_cars_out_west;
+    //int num_cars_out_west;
 };
 
 typedef struct {
@@ -56,6 +57,7 @@ static int grid_size = 128;
 static int opt_mem = 1000;
 static int initial_cars_per_intersection = 1;
 static int lane_capacity = 4;
+static int lane_unit_traversal_time = 1;
 static tw_lpid nlp_per_pe = 1024;
 static tw_stime lookahead = 0.00000001;
 static tw_stime traffic_light_duration = 10.0;
