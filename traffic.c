@@ -210,7 +210,7 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
             tw_event_send(e);
         } else {
             if(msg->car.x_to_go != 0 || msg->car.y_to_go != 0){
-                ts = update_next_available_departure(s, new_dir, lp);
+                ts = update_next_available_departure(s, msg->car.direction, lp);
                 e = tw_event_new(lp, ts, lp);
                 m = tw_event_data(e);
                 m->type = DEPARTURE;
@@ -236,17 +236,57 @@ void rc_event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_l
 {
     switch (msg->type) {
     case ARRIVAL:
-        s->furthest_flight_landing = msg->saved_furthest_flight_landing;
-        tw_rand_reverse_unif(lp->rng);
+        s->num_cars_arrived_here--;
+        int lane_full = 0;
+        switch(msg->car.direction){
+        case NORTH:
+            if(s->num_cars_in_south >= lane_capacity){
+                lane_full = 1;
+            } else {
+                if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
+                    s->num_cars_finished_here--;
+                } else {
+                    s->num_cars_in_south--;
+                }
+            }
+            break;
+        case EAST:
+            if(s->num_cars_in_west >= lane_capacity){
+                lane_full = 1;
+            } else {
+                if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
+                    s->num_cars_finished_here--;
+                } else {
+                    s->num_cars_in_west--;
+                }
+            }
+            break;
+        case SOUTH:
+            if(s->num_cars_in_north >= lane_capacity){
+                lane_full = 1;
+            } else {
+                if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
+                    s->num_cars_finished_here--;
+                } else {
+                    s->num_cars_in_north--;
+                }
+            }
+            break;
+        case WEST:
+            if(s->num_cars_in_east >= lane_capacity){
+                lane_full = 1;
+            } else {
+                if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
+                    s->num_cars_finished_here--;
+                } else {
+                    s->num_cars_in_east--;
+                }
+            }
+            break;
+        }
         break;
     case DEPARTURE:
-        tw_rand_reverse_unif(lp->rng);
-        tw_rand_reverse_unif(lp->rng);
         break;
-    case LAND:
-        s->landings--;
-        s->waiting_time -= msg->waiting_time;
-        tw_rand_reverse_unif(lp->rng);
     }
 }
 
