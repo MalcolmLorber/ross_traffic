@@ -11,45 +11,45 @@ typedef struct traffic_state traffic_state;
 typedef struct traffic_message traffic_message;
 
 enum traffic_event_t {
-	ARRIVAL,
-	DEPARTURE
+    ARRIVAL,
+    DEPARTURE
 };
 
 enum traffic_direction_t {
-	IN_NORTH = 0,
-	OUT_NORTH,
-	IN_SOUTH,
-	OUT_SOUTH,
-	IN_EAST,
-	OUT_EAST,
-	IN_WEST,
-	OUT_WEST
+    IN_NORTH = 0,
+    OUT_NORTH,
+    IN_SOUTH,
+    OUT_SOUTH,
+    IN_EAST,
+    OUT_EAST,
+    IN_WEST,
+    OUT_WEST
 };
 
 struct traffic_state {
-	int num_cars_finished_here;
-	int num_cars_arrived_here;
-	int waiting_time;
+    int num_cars_finished_here;
+    int num_cars_arrived_here;
+    int waiting_time;
 
-	int num_cars_in_north;
-	int num_cars_out_north;
-	int num_cars_in_south;
-	int num_cars_out_south;
-	int num_cars_in_east;
-	int num_cars_out_east;
-	int num_cars_in_west;
-	int num_cars_out_west;
+    int num_cars_in_north;
+    int num_cars_out_north;
+    int num_cars_in_south;
+    int num_cars_out_south;
+    int num_cars_in_east;
+    int num_cars_out_east;
+    int num_cars_in_west;
+    int num_cars_out_west;
 };
 
 typedef struct {
-	int x_to_go;
-	int y_to_go;
-	traffic_direction_t direction;
+    int x_to_go;
+    int y_to_go;
+    traffic_direction_t direction;
 } car;
 
 struct traffic_message {
-	traffic_event_t type;
-	car car;
+    traffic_event_t type;
+    car car;
 };
 
 static int grid_size = 128;
