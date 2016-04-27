@@ -331,6 +331,8 @@ int main(int argc, char **argv, char **env)
     tw_opt_add(app_opt);
     tw_init(&argc, &argv);
 
+    nlp_per_pe = grid_size * grid_size;
+
     //Ask the professor whats up
     nlp_per_pe /= (tw_nnodes() * g_tw_npe);
     g_tw_events_per_pe = (initial_cars_per_intersection * nlp_per_pe / g_tw_npe) + opt_mem;

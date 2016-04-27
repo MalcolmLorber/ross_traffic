@@ -58,7 +58,7 @@ struct traffic_message {
     car car;
 };
 
-static int grid_size = 128;
+static int grid_size = 256;
 static int opt_mem = 1000;
 static int initial_cars_per_intersection = 1;
 static int lane_capacity = 4;
