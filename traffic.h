@@ -31,7 +31,7 @@ enum traffic_direction_t {
 struct traffic_state {
 	int num_cars_finished_here;
 	int num_cars_arrived_here;
-	int average_waiting_time;
+	int waiting_time;
     
 	int num_cars_in_north;
 	int num_cars_out_north;
