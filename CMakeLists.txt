@@ -1,8 +1,17 @@
+cmake_minimum_required(VERSION 2.8)
+
 INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR})
 
-SET(airport_srcs
-airport.c		airport.h)
+# All source files for the model
+SET(traffic_srcs
+  traffic.c
+  traffic.h
+)
 
-ADD_EXECUTABLE(traffic ${traffic_srcs})
+# Set the executable name here: model
+# You will be executing the ./model binary
+ADD_EXECUTABLE(ross_traffic ${traffic_srcs})
 
-TARGET_LINK_LIBRARIES(traffic ROSS m)
+TARGET_LINK_LIBRARIES(ross_traffic ROSS m)
+## Alternatively, use this command with RIO
+#TARGET_LINK_LIBRARIES(model ROSS RIO m)
