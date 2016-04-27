@@ -3,6 +3,8 @@
 
 #include <ross.h>
 
+#define MEAN_DEPARTURE 10
+
 typedef enum traffic_event_t traffic_event_t;
 typedef enum traffic_direction_t traffic_direction_t;
 typedef struct traffic_state traffic_state;

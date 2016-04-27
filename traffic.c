@@ -25,13 +25,13 @@ void init(traffic_state * s, tw_lp * lp)
 	s->num_cars_out_west = 0;
 
 	//seed initial events
-	for (i = 0; i < cars_per_insection; i++) {
+	for (i = 0; i < initial_cars_per_intersection; i++) {
 		e = tw_event_new(lp->gid, tw_rand_exponential(lp->rng, MEAN_DEPARTURE), lp);
 		m = tw_event_data(e);
 		m->type = ARRIVAL;
 		m->car.x_to_go = tw_rand_exponential(lp->rng, grid_size);
 		m->car.y_to_go = tw_rand_exponential(lp->rng, grid_size);
-		m->car.direction = rand() % 8;
+		m->car.direction = (rand() % 4) * 2;
 		tw_event_send(e);
 	}
 }
