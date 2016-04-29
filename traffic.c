@@ -214,7 +214,7 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
         if(lane_full == 1){
             traffic_direction_t new_dir = change_dir(msg->car.direction);
             tw_lpid dest_lp = resolve_neighbor(new_dir, lp);
-            if(dest_lp >= tw_nnodes())
+            if(dest_lp >= tw_nnodes() * g_tw_npe * g_tw_nlp)
                 printf("dir: %d, gid: %d\n", new_dir, (int)lp->gid);
             ts = calculate_traversal_time();
             e = tw_event_new(dest_lp, ts, lp);
@@ -237,7 +237,7 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
     case DEPARTURE: ;
         traffic_direction_t dir = find_path(msg);
         tw_lpid dest_lp = resolve_neighbor(dir, lp);
-        if(dest_lp >= tw_nnodes())
+        if(dest_lp >= tw_nnodes() * g_tw_npe * g_tw_nlp)
             printf("dir: %d, gid: %d\n", dir, (int)lp->gid);
         ts = calculate_traversal_time();
         e = tw_event_new(dest_lp, ts, lp);
