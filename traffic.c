@@ -81,7 +81,7 @@ tw_lpid resolve_neighbor(traffic_direction_t dir, tw_lp * lp){
         if (lp->gid < grid_size)
             return lp->gid + (grid_size - 1) * grid_size;
         else
-            return lp->gid - (grid_size - 1);
+            return lp->gid - (grid_size);
     case EAST:
         if ((lp->gid % grid_size) == (grid_size - 1))
             return lp->gid - (grid_size - 1);
@@ -91,7 +91,7 @@ tw_lpid resolve_neighbor(traffic_direction_t dir, tw_lp * lp){
         if (lp->gid >= (grid_size - 1) * grid_size)
             return lp->gid - (grid_size - 1) * grid_size;
         else
-            return lp->gid + (grid_size - 1);
+            return lp->gid + (grid_size);
     case WEST:
         if ((lp->gid % grid_size) == 0)
             return lp->gid + (grid_size - 1);
