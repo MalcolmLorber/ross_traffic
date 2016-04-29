@@ -15,6 +15,12 @@ void init(traffic_state * s, tw_lp * lp)
     s->num_cars_finished_here = 0;
     s->num_cars_arrived_here = 0;
     s->waiting_time = 0;
+
+    s->cur_ns_cycle_start = 0.0;
+    s->last_ns_time = 0.0;
+    s->cur_we_cycle_start = traffic_light_duration;
+    s->last_we_time = traffic_light_duration;
+
     s->num_cars_in_north = 0;
     //s->num_cars_out_north = 0;
     s->num_cars_in_south = 0;
@@ -98,18 +104,23 @@ tw_stime calculate_traversal_time(){
     return lane_capacity * lane_unit_traversal_time;
 }
 
+int ne(int n)
+{
+    return (n+1) & ~1;
+}
+
 tw_stime update_next_available_departure(traffic_state *s, traffic_direction_t dir, tw_lp *lp)
 {
     if(dir == NORTH || dir == SOUTH){
-        if(tw_now(lp) > (s->last_ns_time+time_car_takes)){
-            if(tw_now(lp) > (s->cur_ns_cycle_start + traffic_light_duration)){
-                s->cur_ns_cycle_start = (2 * traffic_light_duration) *
-                    ceil((tw_now(lp) - s->cur_ns_cycle_start)/(2 * traffic_light_duration));
+        if(tw_now(lp) >= (s->last_ns_time+time_car_takes)){
+            if(tw_now(lp) >= (s->cur_ns_cycle_start + traffic_light_duration)){
+                s->cur_ns_cycle_start += (traffic_light_duration) *
+                    ne((int)(tw_now(lp) - s->cur_ns_cycle_start)/(traffic_light_duration));
             }
             s->last_ns_time = ROSS_MAX(tw_now(lp),s->cur_ns_cycle_start);
         }
         else{
-            if(s->last_ns_time + time_car_takes <= s->cur_ns_cycle_start + traffic_light_duration){
+            if(s->last_ns_time + time_car_takes < s->cur_ns_cycle_start + traffic_light_duration){
                 s->last_ns_time += time_car_takes;
             }
             else{
@@ -117,18 +128,18 @@ tw_stime update_next_available_departure(traffic_state *s, traffic_direction_t d
                 s->cur_ns_cycle_start += 2 * traffic_light_duration;
             }
         }
-        return s->last_ns_time;
+        return s->last_ns_time - tw_now(lp);
     }
     else{
-        if(tw_now(lp) > (s->last_we_time+time_car_takes)){
-            if(tw_now(lp) > (s->cur_we_cycle_start + traffic_light_duration)){
-                s->cur_we_cycle_start = (2 * traffic_light_duration) *
-                    ceil((tw_now(lp) - s->cur_we_cycle_start)/(2 * traffic_light_duration));
+        if(tw_now(lp) >= (s->last_we_time+time_car_takes)){
+            if(tw_now(lp) >= (s->cur_we_cycle_start + traffic_light_duration)){
+                s->cur_we_cycle_start += (traffic_light_duration) *
+                    ne((int)(tw_now(lp) - s->cur_we_cycle_start)/(traffic_light_duration));
             }
             s->last_we_time = ROSS_MAX(tw_now(lp),s->cur_we_cycle_start);
         }
         else{
-            if(s->last_we_time + time_car_takes <= s->cur_we_cycle_start + traffic_light_duration){
+            if(s->last_we_time + time_car_takes < s->cur_we_cycle_start + traffic_light_duration){
                 s->last_we_time += time_car_takes;
             }
             else{
@@ -136,8 +147,10 @@ tw_stime update_next_available_departure(traffic_state *s, traffic_direction_t d
                 s->cur_we_cycle_start += 2 * traffic_light_duration;
             }
         }
-        return s->last_we_time;
+        return s->last_we_time - tw_now(lp);
     }
+    //s->last_ns_time = ROSS_MAX(tw_now(lp), s->last_ns_time + time_car_takes);
+    //return s->last_ns_time - tw_now(lp);
 }
 
 void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp * lp)
