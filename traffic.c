@@ -306,6 +306,8 @@ void rc_event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_l
 void final(traffic_state * s, tw_lp * lp)
 {
     wait_time_avg += ((s->waiting_time / (double)s->num_cars_arrived_here) / nlp_per_pe);
+    total_cars_finished += s->num_cars_finished_here;
+    average_cars_per_intersection += (double)s->num_cars_arrived_here / nlp_per_pe;
 }
 
 tw_lptype traffic_lps[] =
@@ -362,7 +364,9 @@ int main(int argc, char **argv, char **env)
 
     if (tw_ismaster()) {
         printf("Traffic Model Statistics:\n");
-        //Print out stats aggregation
+        printf("Total number of cars finished %d", total_cars_finished);
+        printf("Average cars passed through intersecton %.2f", average_cars_per_intersection);
+        print("Average wait time %.2f", wait_time_avg);
     }
 
     tw_end();
