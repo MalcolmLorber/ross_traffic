@@ -81,7 +81,7 @@ tw_lpid resolve_neighbor(traffic_direction_t dir, tw_lp * lp){
         if (lp->gid < grid_size)
             return lp->gid + (grid_size - 1) * grid_size;
         else
-            return lp->gid - (grid_size - 1);
+            return lp->gid - (grid_size);
     case EAST:
         if ((lp->gid % grid_size) == (grid_size - 1))
             return lp->gid - (grid_size - 1);
@@ -91,7 +91,7 @@ tw_lpid resolve_neighbor(traffic_direction_t dir, tw_lp * lp){
         if (lp->gid >= (grid_size - 1) * grid_size)
             return lp->gid - (grid_size - 1) * grid_size;
         else
-            return lp->gid + (grid_size - 1);
+            return lp->gid + (grid_size);
     case WEST:
         if ((lp->gid % grid_size) == 0)
             return lp->gid + (grid_size - 1);
@@ -214,6 +214,8 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
         if(lane_full == 1){
             traffic_direction_t new_dir = change_dir(msg->car.direction);
             tw_lpid dest_lp = resolve_neighbor(new_dir, lp);
+            if(dest_lp >= tw_nnodes() * g_tw_npe * g_tw_nlp)
+                printf("dir: %d, gid: %d\n", new_dir, (int)lp->gid);
             ts = calculate_traversal_time();
             e = tw_event_new(dest_lp, ts, lp);
             m = tw_event_data(e);
@@ -235,6 +237,8 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
     case DEPARTURE: ;
         traffic_direction_t dir = find_path(msg);
         tw_lpid dest_lp = resolve_neighbor(dir, lp);
+        if(dest_lp >= tw_nnodes() * g_tw_npe * g_tw_nlp)
+            printf("dir: %d, gid: %d\n", dir, (int)lp->gid);
         ts = calculate_traversal_time();
         e = tw_event_new(dest_lp, ts, lp);
         m = tw_event_data(e);
@@ -364,9 +368,9 @@ int main(int argc, char **argv, char **env)
 
     if (tw_ismaster()) {
         printf("Traffic Model Statistics:\n");
-        printf("Total number of cars finished %d", total_cars_finished);
-        printf("Average cars passed through intersecton %.2f", average_cars_per_intersection);
-        print("Average wait time %.2f", wait_time_avg);
+        printf("Total number of cars finished %d\n", total_cars_finished);
+        printf("Average cars passed through intersecton %.2f\n", average_cars_per_intersection);
+        printf("Average wait time %.2f\n", wait_time_avg);
     }
 
     tw_end();
