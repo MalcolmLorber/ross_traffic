@@ -370,7 +370,7 @@ int main(int argc, char **argv, char **env)
         printf("Traffic Model Statistics:\n");
         printf("Total number of cars finished %d", total_cars_finished);
         printf("Average cars passed through intersecton %.2f", average_cars_per_intersection);
-        print("Average wait time %.2f", wait_time_avg);
+        printf("Average wait time %.2f", wait_time_avg);
     }
 
     tw_end();
