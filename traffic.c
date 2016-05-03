@@ -160,6 +160,7 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
     tw_stime ts;
     tw_event *e;
     traffic_message *m;
+    *(int *)bf = (int)0;
 
     switch (msg->type) {
     case ARRIVAL:
@@ -168,6 +169,7 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
         switch(msg->car.direction){
         case NORTH:
             if(s->num_cars_in_south >= lane_capacity){
+                *(int *)bf = (int)1;
                 lane_full = 1;
             } else {
                 if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
@@ -179,6 +181,7 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
             break;
         case EAST:
             if(s->num_cars_in_west >= lane_capacity){
+                *(int *)bf = (int)1;
                 lane_full = 1;
             } else {
                 if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
@@ -190,6 +193,7 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
             break;
         case SOUTH:
             if(s->num_cars_in_north >= lane_capacity){
+                *(int *)bf = (int)1;
                 lane_full = 1;
             } else {
                 if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
@@ -201,6 +205,7 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
             break;
         case WEST:
             if(s->num_cars_in_east >= lane_capacity){
+                *(int *)CV = (int)1;
                 lane_full = 1;
             } else {
                 if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
@@ -251,13 +256,14 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
 
 void rc_event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp * lp)
 {
+    int lane_was_full = *(int *)bf;
     switch (msg->type) {
     case ARRIVAL:
         s->num_cars_arrived_here--;
         int lane_full = 0;
         switch(msg->car.direction){
         case NORTH:
-            if(s->num_cars_in_south >= lane_capacity){
+            if(lane_was_full == 1){
                 lane_full = 1;
             } else {
                 if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
@@ -268,7 +274,7 @@ void rc_event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_l
             }
             break;
         case EAST:
-            if(s->num_cars_in_west >= lane_capacity){
+            if(lane_was_full == 1){
                 lane_full = 1;
             } else {
                 if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
@@ -279,7 +285,7 @@ void rc_event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_l
             }
             break;
         case SOUTH:
-            if(s->num_cars_in_north >= lane_capacity){
+            if(lane_was_full == 1){
                 lane_full = 1;
             } else {
                 if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
@@ -290,7 +296,7 @@ void rc_event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_l
             }
             break;
         case WEST:
-            if(s->num_cars_in_east >= lane_capacity){
+            if(lane_was_full == 1){
                 lane_full = 1;
             } else {
                 if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
@@ -300,6 +306,9 @@ void rc_event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_l
                 }
             }
             break;
+        }
+        if(lane_full == 0){
+            //DO REVERSE COMPUTATION FOR TRAFFIC LIGHt
         }
         break;
     case DEPARTURE:
