@@ -53,10 +53,18 @@ typedef struct {
     traffic_direction_t direction;
 } car;
 
+typedef struct {
+    car saved_car;
+    struct traffic_state saved_ts;
+} saved_data;
+
 struct traffic_message {
     traffic_event_t type;
     car car;
+    saved_data saved;
+    long rng_count;
 };
+
 
 static int grid_size = 256;
 static int opt_mem = 16000;
