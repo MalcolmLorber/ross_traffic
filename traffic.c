@@ -410,7 +410,7 @@ int main(int argc, char **argv, char **env)
     tw_init(&argc, &argv);
 
     
-    nlp_per_pe = grid_size * grid_size / g_tw_npe;
+    nlp_per_pe = grid_size * grid_size / (tw_nnodes()*g_tw_npe);
 
     //Ask the professor whats up
     //nlp_per_pe /= (tw_nnodes() * g_tw_npe);
