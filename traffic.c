@@ -133,7 +133,7 @@ int ne(int n)
 
 tw_stime update_next_available_departure(traffic_state *s, traffic_direction_t dir, tw_lp *lp)
 {
-    
+
     if(dir == NORTH || dir == SOUTH){
         if(tw_now(lp) >= (s->last_ns_time+time_car_takes)){
             if(tw_now(lp) >= (s->cur_ns_cycle_start + traffic_light_duration)){
@@ -236,9 +236,9 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
                 if(dest_lp >= tw_nnodes() * g_tw_npe * g_tw_nlp)
                     printf("dir: %d, gid: %d\n", new_dir, (int)lp->gid);
                 ts = calculate_traversal_time();
-            
+
                 ts = tw_rand_exponential(lp->rng, ts);
-            
+
                 e = tw_event_new(dest_lp, ts, lp);
                 m = tw_event_data(e);
                 m->type = ARRIVAL;
@@ -248,9 +248,9 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
             } else {
                 if(msg->car.x_to_go != 0 || msg->car.y_to_go != 0){
                     ts = update_next_available_departure(s, msg->car.direction, lp);
-                
+
                     ts = tw_rand_exponential(lp->rng, ts);
-                
+
                     e = tw_event_new(lp->gid, ts, lp);
                     m = tw_event_data(e);
                     m->type = DEPARTURE;
@@ -260,15 +260,29 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
             }
         }
         break;
-    case DEPARTURE: ;
+    case DEPARTURE:
+        switch(msg->car.direction){
+        case NORTH:
+                s->num_cars_in_south--;
+            break;
+        case EAST:
+                s->num_cars_in_west--;
+            break;
+        case SOUTH:
+            s->num_cars_in_north--;
+            break;
+        case WEST:
+            s->num_cars_in_east--;
+            break;
+        }
         traffic_direction_t dir = find_path(msg);
         tw_lpid dest_lp = resolve_neighbor(dir, lp);
         if(dest_lp >= tw_nnodes() * g_tw_npe * g_tw_nlp)
             printf("dir: %d, gid: %d\n", dir, (int)lp->gid);
         ts = calculate_traversal_time();
-        
+
         ts = tw_rand_exponential(lp->rng, ts);
-        
+
         e = tw_event_new(dest_lp, ts, lp);
         m = tw_event_data(e);
         m->type = ARRIVAL;
@@ -280,7 +294,7 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
 }
 
 void rc_event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp * lp)
-{                                               
+{
     long count = msg->rng_count;
     *s = msg->saved.saved_ts;
     msg->car = msg->saved.saved_car;
@@ -393,7 +407,7 @@ int main(int argc, char **argv, char **env)
     tw_opt_add(app_opt);
     tw_init(&argc, &argv);
 
-    
+
     nlp_per_pe = grid_size * grid_size / (tw_nnodes()*g_tw_npe);
 
     //Ask the professor whats up
