@@ -263,10 +263,10 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
     case DEPARTURE:
         switch(msg->car.direction){
         case NORTH:
-                s->num_cars_in_south--;
+            s->num_cars_in_south--;
             break;
         case EAST:
-                s->num_cars_in_west--;
+            s->num_cars_in_west--;
             break;
         case SOUTH:
             s->num_cars_in_north--;
