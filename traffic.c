@@ -233,11 +233,16 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
                 s->num_u_turns++;
                 traffic_direction_t new_dir = change_dir(msg->car.direction);
                 tw_lpid dest_lp = resolve_neighbor(new_dir, lp);
+
+
+
                 if(dest_lp >= tw_nnodes() * g_tw_npe * g_tw_nlp)
                     printf("dir: %d, gid: %d\n", new_dir, (int)lp->gid);
                 ts = calculate_traversal_time();
 
                 ts = tw_rand_exponential(lp->rng, ts);
+
+                s->waiting_time += MEAN_UTURN;
 
                 e = tw_event_new(dest_lp, ts, lp);
                 m = tw_event_data(e);
@@ -255,6 +260,7 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
                     m = tw_event_data(e);
                     m->type = DEPARTURE;
                     m->car = msg->car;
+                    m->time_arrived = tw_now(lp);
                     tw_event_send(e);
                 }
             }
@@ -275,6 +281,7 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
             s->num_cars_in_east--;
             break;
         }
+        s->waiting_time += (tw_now(lp) - msg->time_arrived)
         traffic_direction_t dir = find_path(msg);
         tw_lpid dest_lp = resolve_neighbor(dir, lp);
         if(dest_lp >= tw_nnodes() * g_tw_npe * g_tw_nlp)

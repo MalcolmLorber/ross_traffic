@@ -62,6 +62,7 @@ typedef struct {
 } saved_data;
 
 struct traffic_message {
+    tw_stime time_arrived;
     traffic_event_t type;
     car car;
     saved_data saved;
