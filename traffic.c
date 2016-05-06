@@ -195,85 +195,69 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
         if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
             s->num_cars_finished_here++;
         } else {
-        switch(msg->car.direction){
-        case NORTH:
-            if(s->num_cars_in_south >= lane_capacity){
-                *(int *)bf = (int)1;
-                lane_full = 1;
-            } else {
-                if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
-                    s->num_cars_finished_here++;
+            switch(msg->car.direction){
+            case NORTH:
+                if(s->num_cars_in_south >= lane_capacity){
+                    *(int *)bf = (int)1;
+                    lane_full = 1;
                 } else {
                     s->num_cars_in_south++;
                 }
-            }
-            break;
-        case EAST:
-            if(s->num_cars_in_west >= lane_capacity){
-                *(int *)bf = (int)1;
-                lane_full = 1;
-            } else {
-                if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
-                    s->num_cars_finished_here++;
+                break;
+            case EAST:
+                if(s->num_cars_in_west >= lane_capacity){
+                    *(int *)bf = (int)1;
+                    lane_full = 1;
                 } else {
                     s->num_cars_in_west++;
                 }
-            }
-            break;
-        case SOUTH:
-            if(s->num_cars_in_north >= lane_capacity){
-                *(int *)bf = (int)1;
-                lane_full = 1;
-            } else {
-                if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
-                    s->num_cars_finished_here++;
+                break;
+            case SOUTH:
+                if(s->num_cars_in_north >= lane_capacity){
+                    *(int *)bf = (int)1;
+                    lane_full = 1;
                 } else {
                     s->num_cars_in_north++;
                 }
-            }
-            break;
-        case WEST:
-            if(s->num_cars_in_east >= lane_capacity){
-                *(int *)bf = (int)1;
-                lane_full = 1;
-            } else {
-                if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
-                    s->num_cars_finished_here++;
+                break;
+            case WEST:
+                if(s->num_cars_in_east >= lane_capacity){
+                    *(int *)bf = (int)1;
+                    lane_full = 1;
                 } else {
                     s->num_cars_in_east++;
                 }
+                break;
             }
-            break;
-        }
-        if(lane_full == 1){
-            s->num_u_turns++;
-            traffic_direction_t new_dir = change_dir(msg->car.direction);
-            tw_lpid dest_lp = resolve_neighbor(new_dir, lp);
-            if(dest_lp >= tw_nnodes() * g_tw_npe * g_tw_nlp)
-                printf("dir: %d, gid: %d\n", new_dir, (int)lp->gid);
-            ts = calculate_traversal_time();
+            if(lane_full == 1){
+                s->num_u_turns++;
+                traffic_direction_t new_dir = change_dir(msg->car.direction);
+                tw_lpid dest_lp = resolve_neighbor(new_dir, lp);
+                if(dest_lp >= tw_nnodes() * g_tw_npe * g_tw_nlp)
+                    printf("dir: %d, gid: %d\n", new_dir, (int)lp->gid);
+                ts = calculate_traversal_time();
             
-            ts = tw_rand_exponential(lp->rng, ts);
-            
-            e = tw_event_new(dest_lp, ts, lp);
-            m = tw_event_data(e);
-            m->type = ARRIVAL;
-            m->car = msg->car;
-            m->car.direction = new_dir;
-            tw_event_send(e);
-        } else {
-            if(msg->car.x_to_go != 0 || msg->car.y_to_go != 0){
-                ts = update_next_available_departure(s, msg->car.direction, lp);
-                
                 ts = tw_rand_exponential(lp->rng, ts);
-                
-                e = tw_event_new(lp->gid, ts, lp);
+            
+                e = tw_event_new(dest_lp, ts, lp);
                 m = tw_event_data(e);
-                m->type = DEPARTURE;
+                m->type = ARRIVAL;
                 m->car = msg->car;
+                m->car.direction = new_dir;
                 tw_event_send(e);
+            } else {
+                if(msg->car.x_to_go != 0 || msg->car.y_to_go != 0){
+                    ts = update_next_available_departure(s, msg->car.direction, lp);
+                
+                    ts = tw_rand_exponential(lp->rng, ts);
+                
+                    e = tw_event_new(lp->gid, ts, lp);
+                    m = tw_event_data(e);
+                    m->type = DEPARTURE;
+                    m->car = msg->car;
+                    tw_event_send(e);
+                }
             }
-        }
         }
         break;
     case DEPARTURE: ;
