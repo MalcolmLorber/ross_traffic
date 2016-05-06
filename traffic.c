@@ -29,9 +29,11 @@ void init(traffic_state * s, tw_lp * lp)
     //s->num_cars_out_east = 0;
     s->num_cars_in_west = 0;
     //s->num_cars_out_west = 0;
+    s->num_u_turns = 0;
 
     //seed initial events
     for (i = 0; i < initial_cars_per_intersection; i++) {
+        s->cars_started++;
         e = tw_event_new(lp->gid, tw_rand_exponential(lp->rng, MEAN_DEPARTURE), lp);
         m = tw_event_data(e);
         m->type = ARRIVAL;
@@ -56,6 +58,25 @@ traffic_direction_t change_dir(traffic_direction_t cur_dir) {
 }
 
 traffic_direction_t find_path(traffic_message * msg) {
+    if(abs(msg->car.x_to_go) >= abs(msg->car.y_to_go)){
+        if(msg->car.x_to_go < 0){
+            msg->car.x_to_go++;
+            return WEST;
+        } else if (msg->car.x_to_go > 0) {
+            msg->car.x_to_go--;
+            return EAST;
+        }
+    } else {
+        if(msg->car.y_to_go < 0) {
+            msg->car.y_to_go++;
+            return NORTH;
+        } else if(msg->car.y_to_go > 0){
+            msg->car.y_to_go--;
+            return SOUTH;
+        }
+    }
+    return -1;
+    /*
     if(msg->car.x_to_go < 0){
         msg->car.x_to_go++;
         return WEST;
@@ -73,6 +94,7 @@ traffic_direction_t find_path(traffic_message * msg) {
             return -1;
         }
     }
+    */
 }
 
 tw_lpid resolve_neighbor(traffic_direction_t dir, tw_lp * lp){
@@ -111,6 +133,7 @@ int ne(int n)
 
 tw_stime update_next_available_departure(traffic_state *s, traffic_direction_t dir, tw_lp *lp)
 {
+    
     if(dir == NORTH || dir == SOUTH){
         if(tw_now(lp) >= (s->last_ns_time+time_car_takes)){
             if(tw_now(lp) >= (s->cur_ns_cycle_start + traffic_light_duration)){
@@ -169,6 +192,9 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
     case ARRIVAL:
         s->num_cars_arrived_here++;
         int lane_full = 0;
+        if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
+            s->num_cars_finished_here++;
+        } else {
         switch(msg->car.direction){
         case NORTH:
             if(s->num_cars_in_south >= lane_capacity){
@@ -220,11 +246,15 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
             break;
         }
         if(lane_full == 1){
+            s->num_u_turns++;
             traffic_direction_t new_dir = change_dir(msg->car.direction);
             tw_lpid dest_lp = resolve_neighbor(new_dir, lp);
             if(dest_lp >= tw_nnodes() * g_tw_npe * g_tw_nlp)
                 printf("dir: %d, gid: %d\n", new_dir, (int)lp->gid);
             ts = calculate_traversal_time();
+            
+            ts = tw_rand_exponential(lp->rng, ts);
+            
             e = tw_event_new(dest_lp, ts, lp);
             m = tw_event_data(e);
             m->type = ARRIVAL;
@@ -234,12 +264,16 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
         } else {
             if(msg->car.x_to_go != 0 || msg->car.y_to_go != 0){
                 ts = update_next_available_departure(s, msg->car.direction, lp);
+                
+                ts = tw_rand_exponential(lp->rng, ts);
+                
                 e = tw_event_new(lp->gid, ts, lp);
                 m = tw_event_data(e);
                 m->type = DEPARTURE;
                 m->car = msg->car;
                 tw_event_send(e);
             }
+        }
         }
         break;
     case DEPARTURE: ;
@@ -248,6 +282,9 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
         if(dest_lp >= tw_nnodes() * g_tw_npe * g_tw_nlp)
             printf("dir: %d, gid: %d\n", dir, (int)lp->gid);
         ts = calculate_traversal_time();
+        
+        ts = tw_rand_exponential(lp->rng, ts);
+        
         e = tw_event_new(dest_lp, ts, lp);
         m = tw_event_data(e);
         m->type = ARRIVAL;
@@ -331,6 +368,8 @@ void final(traffic_state * s, tw_lp * lp)
     wait_time_avg += ((s->waiting_time / (double)s->num_cars_arrived_here) / nlp_per_pe);
     total_cars_finished += s->num_cars_finished_here;
     average_cars_per_intersection += (double)s->num_cars_arrived_here / nlp_per_pe;
+    num_u_turns_avg += (double)s->num_u_turns / nlp_per_pe;
+    total_cars_started += s->cars_started;
 }
 
 tw_lptype traffic_lps[] =
@@ -358,6 +397,7 @@ const tw_optdef app_opt [] =
     TWOPT_STIME("lookahead",     lookahead,                  "lookahead for events"),
     TWOPT_STIME("traffic_light_duration",     traffic_light_duration,                        "Time for a given traffic light cycle"),
     TWOPT_STIME("time_car_takes",     time_car_takes,                        "the time the car takes to go through the light"),
+    TWOPT_UINT("lane_unit_traversal_time",    lane_unit_traversal_time,                        "multi lane*time"),
     TWOPT_END()
 };
 
@@ -369,10 +409,11 @@ int main(int argc, char **argv, char **env)
     tw_opt_add(app_opt);
     tw_init(&argc, &argv);
 
-    nlp_per_pe = grid_size * grid_size;
+    
+    nlp_per_pe = grid_size * grid_size / g_tw_npe;
 
     //Ask the professor whats up
-    nlp_per_pe /= (tw_nnodes() * g_tw_npe);
+    //nlp_per_pe /= (tw_nnodes() * g_tw_npe);
     g_tw_events_per_pe = (initial_cars_per_intersection * nlp_per_pe / g_tw_npe) + opt_mem;
 
     g_tw_lookahead = lookahead;
@@ -390,6 +431,8 @@ int main(int argc, char **argv, char **env)
         printf("Total number of cars finished %d\n", total_cars_finished);
         printf("Average cars passed through intersecton %.2f\n", average_cars_per_intersection);
         printf("Average wait time %.2f\n", wait_time_avg);
+        printf("Average number of u turns per intersection: %.2f\n",num_u_turns_avg);
+        printf("Total cars started: %d\n", total_cars_started);
     }
 
     tw_end();

@@ -45,6 +45,9 @@ struct traffic_state {
     //int num_cars_out_east;
     int num_cars_in_west;
     //int num_cars_out_west;
+
+    int num_u_turns;
+    int cars_started;
 };
 
 typedef struct {
@@ -72,6 +75,8 @@ static int initial_cars_per_intersection = 1;
 static int lane_capacity = 4;
 static int lane_unit_traversal_time = 1;
 static int total_cars_finished = 0;
+static int total_cars_started = 0;
+static double num_u_turns_avg = 0;
 static double average_cars_per_intersection = 0.0;
 static tw_lpid nlp_per_pe = 1024;
 static tw_stime lookahead = 0.00000001;
