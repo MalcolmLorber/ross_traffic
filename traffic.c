@@ -431,11 +431,13 @@ int main(int argc, char **argv, char **env)
 
     tw_run();
 
-    MPI_Reduce(&total_cars_finished, &total_cars_finished, MPI_LONG_INT, 1, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&total_cars_started, &total_cars_started, MPI_LONG_INT, 1, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&average_cars_per_intersection, &average_cars_per_intersection, MPI_DOUBLE, 1, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&wait_time_avg, &wait_time_avg, MPI_DOUBLE, 1, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&num_u_turns_avg, &num_u_turns_avg, MPI_DOUBLE, 1, MPI_SUM, 0, MPI_COMM_WORLD);
+    if(g_tw_npe > 1) {
+        MPI_Reduce(&total_cars_finished, &total_cars_finished, MPI_LONG_INT, 1, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&total_cars_started, &total_cars_started, MPI_LONG_INT, 1, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&average_cars_per_intersection, &average_cars_per_intersection, MPI_DOUBLE, 1, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&wait_time_avg, &wait_time_avg, MPI_DOUBLE, 1, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&num_u_turns_avg, &num_u_turns_avg, MPI_DOUBLE, 1, MPI_SUM, 0, MPI_COMM_WORLD);
+    }
 
     if (tw_ismaster()) {
         average_cars_per_intersection /= g_tw_npe;
