@@ -281,7 +281,7 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
             s->num_cars_in_east--;
             break;
         }
-        s->waiting_time += (tw_now(lp) - msg->time_arrived)
+        s->waiting_time += (tw_now(lp) - msg->time_arrived);
         traffic_direction_t dir = find_path(msg);
         tw_lpid dest_lp = resolve_neighbor(dir, lp);
         if(dest_lp >= tw_nnodes() * g_tw_npe * g_tw_nlp)
