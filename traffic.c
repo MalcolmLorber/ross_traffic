@@ -22,13 +22,10 @@ void init(traffic_state * s, tw_lp * lp)
     s->last_we_time = traffic_light_duration;
 
     s->num_cars_in_north = 0;
-    //s->num_cars_out_north = 0;
     s->num_cars_in_south = 0;
-    //s->num_cars_out_south = 0;
     s->num_cars_in_east = 0;
-    //s->num_cars_out_east = 0;
     s->num_cars_in_west = 0;
-    //s->num_cars_out_west = 0;
+
     s->num_u_turns = 0;
 
     //seed initial events
@@ -44,7 +41,8 @@ void init(traffic_state * s, tw_lp * lp)
     }
 }
 
-traffic_direction_t change_dir(traffic_direction_t cur_dir) {
+traffic_direction_t change_dir(traffic_direction_t cur_dir) 
+{
     switch(cur_dir){
     case SOUTH:
         return NORTH;
@@ -57,7 +55,8 @@ traffic_direction_t change_dir(traffic_direction_t cur_dir) {
     }
 }
 
-traffic_direction_t find_path(traffic_message * msg) {
+traffic_direction_t find_path(traffic_message * msg) 
+{
     if(abs(msg->car.x_to_go) >= abs(msg->car.y_to_go)){
         if(msg->car.x_to_go < 0){
             msg->car.x_to_go++;
@@ -76,28 +75,10 @@ traffic_direction_t find_path(traffic_message * msg) {
         }
     }
     return -1;
-    /*
-    if(msg->car.x_to_go < 0){
-        msg->car.x_to_go++;
-        return WEST;
-    } else if (msg->car.x_to_go > 0) {
-        msg->car.x_to_go--;
-        return EAST;
-    } else {
-        if(msg->car.y_to_go < 0) {
-            msg->car.y_to_go++;
-            return NORTH;
-        } else if(msg->car.y_to_go > 0){
-            msg->car.y_to_go--;
-            return SOUTH;
-        } else {
-            return -1;
-        }
-    }
-    */
 }
 
-tw_lpid resolve_neighbor(traffic_direction_t dir, tw_lp * lp){
+tw_lpid resolve_neighbor(traffic_direction_t dir, tw_lp * lp)
+{
     switch(dir) {
     case NORTH:
         if (lp->gid < grid_size)
@@ -122,7 +103,8 @@ tw_lpid resolve_neighbor(traffic_direction_t dir, tw_lp * lp){
     }
 }
 
-tw_stime calculate_traversal_time(){
+tw_stime calculate_traversal_time()
+{
     return lane_capacity * lane_unit_traversal_time;
 }
 
@@ -172,8 +154,6 @@ tw_stime update_next_available_departure(traffic_state *s, traffic_direction_t d
         }
         return s->last_we_time - tw_now(lp);
     }
-    //s->last_ns_time = ROSS_MAX(tw_now(lp), s->last_ns_time + time_car_takes);
-    //return s->last_ns_time - tw_now(lp);
 }
 
 void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp * lp)
@@ -233,8 +213,6 @@ void event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_lp *
                 s->num_u_turns++;
                 traffic_direction_t new_dir = change_dir(msg->car.direction);
                 tw_lpid dest_lp = resolve_neighbor(new_dir, lp);
-
-
 
                 if(dest_lp >= tw_nnodes() * g_tw_npe * g_tw_nlp)
                     printf("dir: %d, gid: %d\n", new_dir, (int)lp->gid);
@@ -308,64 +286,6 @@ void rc_event_handler(traffic_state * s, tw_bf * bf, traffic_message * msg, tw_l
     while (count--) {
         tw_rand_reverse_unif(lp->rng);
     }
-    /*int lane_was_full = *(int *)bf;
-    switch (msg->type) {
-    case ARRIVAL:
-        s->num_cars_arrived_here--;
-        int lane_full = 0;
-        switch(msg->car.direction){
-        case NORTH:
-            if(lane_was_full == 1){
-                lane_full = 1;
-            } else {
-                if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
-                    s->num_cars_finished_here--;
-                } else {
-                    s->num_cars_in_south--;
-                }
-            }
-            break;
-        case EAST:
-            if(lane_was_full == 1){
-                lane_full = 1;
-            } else {
-                if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
-                    s->num_cars_finished_here--;
-                } else {
-                    s->num_cars_in_west--;
-                }
-            }
-            break;
-        case SOUTH:
-            if(lane_was_full == 1){
-                lane_full = 1;
-            } else {
-                if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
-                    s->num_cars_finished_here--;
-                } else {
-                    s->num_cars_in_north--;
-                }
-            }
-            break;
-        case WEST:
-            if(lane_was_full == 1){
-                lane_full = 1;
-            } else {
-                if(msg->car.x_to_go == 0 && msg->car.y_to_go == 0){
-                    s->num_cars_finished_here--;
-                } else {
-                    s->num_cars_in_east--;
-                }
-            }
-            break;
-        }
-        if(lane_full == 0){
-            //DO REVERSE COMPUTATION FOR TRAFFIC LIGHt
-        }
-        break;
-    case DEPARTURE:
-        break;
-        }*/
 }
 
 void final(traffic_state * s, tw_lp * lp)
@@ -417,13 +337,10 @@ int main(int argc, char **argv, char **env)
 
     nlp_per_pe = grid_size * grid_size / (tw_nnodes()*g_tw_npe);
 
-    //Ask the professor whats up
-    //nlp_per_pe /= (tw_nnodes() * g_tw_npe);
     g_tw_events_per_pe = (initial_cars_per_intersection * nlp_per_pe / g_tw_npe) + opt_mem;
 
     g_tw_lookahead = lookahead;
 
-    //tw_lpid nlp_per_pe = grid_size/g_tw_npe;
     tw_define_lps(nlp_per_pe, sizeof(traffic_message));
 
     for (i = 0; i < g_tw_nlp; i++)
