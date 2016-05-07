@@ -430,13 +430,21 @@ int main(int argc, char **argv, char **env)
         tw_lp_settype(i, &traffic_lps[0]);
 
     tw_run();
-
-    if(g_tw_npe > 1) {
-        MPI_Reduce(&total_cars_finished, &total_cars_finished, MPI_LONG_INT, 1, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&total_cars_started, &total_cars_started, MPI_LONG_INT, 1, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&average_cars_per_intersection, &average_cars_per_intersection, MPI_DOUBLE, 1, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&wait_time_avg, &wait_time_avg, MPI_DOUBLE, 1, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&num_u_turns_avg, &num_u_turns_avg, MPI_DOUBLE, 1, MPI_SUM, 0, MPI_COMM_WORLD);
+    
+    int m_rank;
+    if(tw_ismaster()){
+        MPI_Comm_rank(MPI_COMM_WORLD, &m_rank);
+    }
+    
+    long int c_total_cars_finished, c_total_cars_started;
+    double c_average_cars_per_intersection, c_wait_time_avg, c_num_u_turns_avg;
+    
+    if(tw_nnodes() > 1) {
+        MPI_Reduce(&total_cars_finished, &c_total_cars_finished, 1, MPI_LONG, MPI_SUM, m_rank, MPI_COMM_WORLD);
+        MPI_Reduce(&total_cars_started, &c_total_cars_started, 1, MPI_LONG, MPI_SUM, m_rank, MPI_COMM_WORLD);
+        MPI_Reduce(&average_cars_per_intersection, &c_average_cars_per_intersection, 1, MPI_DOUBLE, MPI_SUM, m_rank, MPI_COMM_WORLD);
+        MPI_Reduce(&wait_time_avg, &c_wait_time_avg, 1, MPI_DOUBLE, MPI_SUM, m_rank, MPI_COMM_WORLD);
+        MPI_Reduce(&num_u_turns_avg, &c_num_u_turns_avg, 1, MPI_DOUBLE, MPI_SUM, m_rank, MPI_COMM_WORLD);
     }
 
     if (tw_ismaster()) {
@@ -444,11 +452,11 @@ int main(int argc, char **argv, char **env)
         wait_time_avg /= g_tw_npe;
         num_u_turns_avg /= g_tw_npe;
         printf("Traffic Model Statistics:\n");
-        printf("Total cars started: %d\n", total_cars_started);
-        printf("Total number of cars finished %d\n", total_cars_finished);
-        printf("Average cars passed through intersecton %.2f\n", average_cars_per_intersection);
-        printf("Average wait time %.2f\n", wait_time_avg);
-        printf("Average number of u-turns per intersection: %.2f\n", num_u_turns_avg);
+        printf("Total cars started: %ld\n", c_total_cars_started);
+        printf("Total number of cars finished %ld\n", c_total_cars_finished);
+        printf("Average cars passed through intersecton %.2f\n", c_average_cars_per_intersection);
+        printf("Average wait time %.2f\n", c_wait_time_avg);
+        printf("Average number of u-turns per intersection: %.2f\n", c_num_u_turns_avg);
     }
 
     tw_end();
