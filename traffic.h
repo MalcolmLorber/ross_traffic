@@ -18,13 +18,9 @@ enum traffic_event_t {
 
 enum traffic_direction_t {
     NORTH = 0,
-    //OUT_NORTH,
     SOUTH,
-    //OUT_SOUTH,
     EAST,
-    //OUT_EAST,
     WEST
-    //OUT_WEST
 };
 
 struct traffic_state {
@@ -38,13 +34,9 @@ struct traffic_state {
     tw_stime last_we_time;
 
     int num_cars_in_north;
-    //int num_cars_out_north;
     int num_cars_in_south;
-    //int num_cars_out_south;
     int num_cars_in_east;
-    //int num_cars_out_east;
     int num_cars_in_west;
-    //int num_cars_out_west;
 
     int num_u_turns;
     int cars_started;
