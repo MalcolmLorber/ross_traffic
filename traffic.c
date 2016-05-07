@@ -442,6 +442,12 @@ int main(int argc, char **argv, char **env)
         MPI_Reduce(&average_cars_per_intersection, &c_average_cars_per_intersection, 1, MPI_DOUBLE, MPI_SUM, m_rank, MPI_COMM_WORLD);
         MPI_Reduce(&wait_time_avg, &c_wait_time_avg, 1, MPI_DOUBLE, MPI_SUM, m_rank, MPI_COMM_WORLD);
         MPI_Reduce(&num_u_turns_avg, &c_num_u_turns_avg, 1, MPI_DOUBLE, MPI_SUM, m_rank, MPI_COMM_WORLD);
+    } else {
+        c_total_cars_finished = total_cars_finished;
+        c_total_cars_started = total_cars_started;
+        c_average_cars_per_intersection = average_cars_per_intersection;
+        c_wait_time_avg = wait_time_avg;
+        c_num_u_turns_avg = num_u_turns_avg;
     }
 
     if (tw_ismaster()) {
