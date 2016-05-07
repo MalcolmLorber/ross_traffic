@@ -431,10 +431,7 @@ int main(int argc, char **argv, char **env)
 
     tw_run();
     
-    int m_rank;
-    if(tw_ismaster()){
-        MPI_Comm_rank(MPI_COMM_WORLD, &m_rank);
-    }
+    int m_rank = 0;
     
     long int c_total_cars_finished, c_total_cars_started;
     double c_average_cars_per_intersection, c_wait_time_avg, c_num_u_turns_avg;
