@@ -1,63 +1,20 @@
 ROSS traffic simulation
 
-
 Contributors
 -Ezra Dowd
 -Alex Mohr
 -Malcolm Lorber
 
+Setup Instructions:
 
-Simulation state:
-    Simualation info:
-    -north in/out
-    -south in/out
-    -east in/out
-    -west in/out
+First setup ROSS according to the instructions at https://github.com/carothersc/ROSS/wiki/Installation, including submodules.
+Place the contents of this folder in ROSS/models/ROSS-Models/ross_traffic/
+Re-run the cmake -DROSS_BUILD_MODELS=ON ../ROSS command in the ross-build directory
+Run make in ross-build/models/ROSS-Models/ross_traffic (NOTE THATTHIS IS IN THE BUILD DIRECTORY)
 
-    Simulation stats:
-    -num cars finished here
-    -num cars arrived here
-    -average waiting time
+Running instructions:
 
-Simulation events:
-    ARRIVAL - north/south/east/west
-    DEPARTURE - north/south/east/west
-    PATHFINDING
-
-Simulation Structure:
-    -Car arrives
-        - Check for room in lane
-        - Update state for lane that car arrived in
-        - Check if this is the destination
-        - Statistics
-        - Swap car direction variable WEST/EAST
-        - Schedule departure
-            - Traffic light
-    -Car departs
-        - Figure out the direction to go to get closer to destination
-            - Seek x first then y
-                -unless lane to seek is full
-                    - Seek random direction
-                -or would result in u-turn
-                    - Seek other random direction
-                    - unless last resort
-        - Schedule arrival event
-            - function of lane capacity
-                - lane capacity * constant
-
-
-Message:
-    message type (simulation event type)
-    destination
-
-Task List:
-    -Finish working out random stuff that isn't the simulation
-        -Figure out run time arguments
-    -Do event handler function
-        -Work out routing logic
-        -Work out scheduling logic
-            -How far in the future to schedule departure events
-    -Do reverse handler function
-        -Need to do event handler first
-    -Do finalization function
-        -What stats to we want to aggregate
+ross_traffic has many runtime options, to view them run ./ross_traffic --help
+Sample run commands:
+mpirun -np 4 ./ross_traffic --synch=3 --grid_size=128 --initial_cars_per_intersection=2
+mpirun -np 8 ./ross_traffic --synch=3 --grid_size=256 --initial_cars_per_intersection=4 --memory=15000
