@@ -1,5 +1,7 @@
 ROSS traffic simulation
 
+A simulation of traffic congesting using the ROSS parallel discrete event simulator.
+
 Contributors
 -Ezra Dowd
 -Alex Mohr
